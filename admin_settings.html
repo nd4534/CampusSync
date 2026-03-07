@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Settings | CampusSync</title>
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+  <style>
+    :root {
+      --primary-color: #0f172a;
+      --accent-color: #2563eb;
+      --light-bg: #f8fafc;
+      --danger: #ef4444;
+      --success: #10b981;
+    }
+    body { font-family: 'Inter', sans-serif; background-color: var(--light-bg); color: #1e293b; }
+    
+    .navbar { box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); background-color: var(--primary-color) !important; }
+    .settings-wrapper { min-height: calc(100vh - 70px); padding: 40px 0; }
+    .settings-card { 
+      border: none; border-radius: 15px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05); 
+      background: white; overflow: hidden; display: flex;
+    }
+
+    .settings-sidebar { background: #f8fafc; border-right: 1px solid #e2e8f0; width: 280px; padding: 30px 20px; }
+    .nav-pills .nav-link { 
+      color: #64748b; font-weight: 600; padding: 12px 18px; border-radius: 10px; 
+      margin-bottom: 5px; border: none; transition: 0.2s; cursor: pointer;
+    }
+    .nav-pills .nav-link.active { background-color: var(--accent-color) !important; color: white !important; }
+
+    .settings-content { flex: 1; padding: 40px 50px; }
+    .info-banner { background: linear-gradient(45deg, #0f172a, #1e293b); color: white; padding: 25px; border-radius: 15px; margin-bottom: 30px; }
+    
+    .form-group label { font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: #64748b; letter-spacing: 0.5px; }
+    .form-control { border-radius: 10px; padding: 12px 15px; border: 1px solid #e2e8f0; background-color: #fcfcfc; }
+
+    .dept-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 15px; }
+    .dept-card { border: 1px solid #e2e8f0; border-radius: 12px; background: #fff; padding: 20px; transition: 0.3s; }
+    .status-dot { height: 10px; width: 100%; border-radius: 50%; display: none; } /* Using Card Border instead for smoothness */
+    .dept-card-online { border-top: 4px solid var(--success); }
+    .dept-card-offline { border-top: 4px solid var(--danger); }
+
+    .security-vault { background: #f1f5f9; border-radius: 15px; padding: 25px; border: 1px solid #e2e8f0; }
+    .code-display { background: white; padding: 12px; border-radius: 8px; border: 2px dashed #cbd5e1; text-align: center; font-weight: 700; letter-spacing: 2px; }
+  </style>
+</head>
+<body onload="initSettings()">
+
+<nav class="navbar navbar-expand-lg navbar-dark">
+  <div class="container">
+    <a class="navbar-brand font-weight-bold" href="admin_dashboard.html">
+        <i class="fas fa-shield-alt mr-2"></i> Admin Console
+    </a>
+    <button class="btn btn-outline-light btn-sm ml-auto" onclick="location.href='admin_dashboard.html'">Back to Dashboard</button>
+  </div>
+</nav>
+
+<div class="container settings-wrapper">
+    <div class="settings-card">
+        <div class="settings-sidebar text-center">
+            <img src="https://ui-avatars.com/api/?name=Admin&background=2563eb&color=fff" class="rounded-circle mb-3 shadow-sm" width="85">
+            <h6 class="font-weight-bold mb-0">PTU Administrator</h6>
+            <small class="text-muted">CGC University Node</small>
+            
+            <div class="nav flex-column nav-pills mt-4" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+                <a class="nav-link active" id="profile-tab" data-toggle="pill" href="#profile" role="tab"><i class="fas fa-user-tie mr-2"></i> Admin Profile</a>
+                <a class="nav-link" id="dept-tab" data-toggle="pill" href="#dept" role="tab" onclick="loadDepartments()"><i class="fas fa-network-wired mr-2"></i> Campus Units</a>
+                <a class="nav-link" id="security-tab" data-toggle="pill" href="#security" role="tab" onclick="load2FASettings()"><i class="fas fa-lock mr-2"></i> Security Vault</a>
+                <hr>
+                <a class="nav-link text-danger" href="#" onclick="handleLogout()"><i class="fas fa-power-off mr-2"></i> Logout Session</a>
+            </div>
+        </div>
+
+        <div class="settings-content">
+            <div class="tab-content" id="v-pills-tabContent">
+                
+                <div class="tab-pane fade show active" id="profile" role="tabpanel">
+                    <div class="info-banner d-flex align-items-center">
+                        <div>
+                            <h4 class="font-weight-bold mb-1">Identity & Access</h4>
+                            <p class="mb-0 small opacity-75">Update your professional profile within the CGC University network.</p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-4"><div class="form-group"><label>Full Name</label><input type="text" class="form-control" value="PTU Help Desk Admin"></div></div>
+                        <div class="col-md-6 mb-4"><div class="form-group"><label>Designation</label><input type="text" class="form-control" value="Chief System Overseer"></div></div>
+                        <div class="col-md-6 mb-4"><div class="form-group"><label>Primary Email</label><input type="email" class="form-control" value="admin@ptu.edu.in"></div></div>
+                        <div class="col-md-6 mb-4"><div class="form-group"><label>University Node</label><input type="text" class="form-control" value="CGC University" readonly></div></div>
+                        <div class="col-md-12 mb-4"><div class="form-group"><label>Admin Bio</label><textarea class="form-control" rows="3">Lead overseer for the PTU Student Help Desk at CGC University.</textarea></div></div>
+                    </div>
+                    <button class="btn btn-primary px-5 font-weight-bold" onclick="alert('Profile Updated Successfully')">Save Changes</button>
+                </div>
+
+                <div class="tab-pane fade" id="dept" role="tabpanel">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4 class="font-weight-bold mb-0">Campus Operational Units</h4>
+                        <button class="btn btn-primary btn-sm" onclick="addNewDept()"><i class="fas fa-plus mr-1"></i> Add Unit</button>
+                    </div>
+                    <div id="deptContainer" class="dept-grid"></div>
+                </div>
+
+                <div class="tab-pane fade" id="security" role="tabpanel">
+                    <h4 class="font-weight-bold mb-4 text-primary"><i class="fas fa-shield-alt mr-2"></i>Security Infrastructure</h4>
+                    <div class="security-vault mb-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="font-weight-bold mb-1">Two-Factor Authentication</h6>
+                                <span id="tfaBadge" class="badge badge-secondary p-1 px-2">Inactive</span>
+                            </div>
+                            <div class="custom-control custom-switch">
+                                <input type="checkbox" class="custom-control-input" id="tfaToggle" onclick="handle2FAToggle()">
+                                <label class="custom-control-label" for="tfaToggle"></label>
+                            </div>
+                        </div>
+                        <div id="tfaActiveSection" class="mt-4" style="display: none;">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="small font-weight-bold text-muted">AUTHENTICATOR SECRET</label>
+                                    <div class="code-display" id="secretKey">---- ----</div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="small font-weight-bold text-muted text-danger">RECOVERY CODE</label>
+                                    <div class="p-2 border border-danger rounded text-center text-danger font-weight-bold" id="recoveryCode">---- ----</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button class="btn btn-danger btn-block font-weight-bold p-3" onclick="updateSecurityPIN()">
+                        <i class="fas fa-key mr-2"></i> UPDATE SYSTEM SECURITY PIN
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // --- DEPARTMENT MANAGEMENT ---
+    let departments = JSON.parse(localStorage.getItem('campusDepts')) || [
+        { id: 1, name: "Hostel Maintenance", head: "R.S. Malhotra", status: "Online" },
+        { id: 2, name: "IT Infrastructure", head: "Sunita Verma", status: "Online" }
+    ];
+
+    function loadDepartments() {
+        const container = document.getElementById('deptContainer');
+        container.innerHTML = "";
+        departments.forEach(dept => {
+            const isOnline = dept.status === "Online";
+            container.innerHTML += `
+                <div class="dept-card ${isOnline ? 'dept-card-online' : 'dept-card-offline'}">
+                    <h6 class="font-weight-bold mb-1">${dept.name}</h6>
+                    <p class="text-muted small mb-3">Head: ${dept.head}</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="badge ${isOnline ? 'badge-success' : 'badge-danger'}">${dept.status}</span>
+                        <div>
+                            <button class="btn btn-sm btn-outline-primary mr-1" onclick="updateStatus(${dept.id})"><i class="fas fa-sync"></i></button>
+                            <button class="btn btn-sm btn-link p-0 text-danger" onclick="removeDept(${dept.id})"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>
+                </div>`;
+        });
+    }
+
+    function updateStatus(id) {
+        const dept = departments.find(d => d.id === id);
+        if(dept) { dept.status = dept.status === "Online" ? "Offline" : "Online"; saveDepts(); }
+    }
+
+    function removeDept(id) {
+        if(confirm("Confirm removal of this unit?")) { departments = departments.filter(d => d.id !== id); saveDepts(); }
+    }
+
+    function saveDepts() { localStorage.setItem('campusDepts', JSON.stringify(departments)); loadDepartments(); }
+
+    function addNewDept() {
+        const name = prompt("Unit Name:");
+        const head = prompt("Head Name:");
+        if(name && head) { departments.push({ id: Date.now(), name, head, status: "Online" }); saveDepts(); }
+    }
+
+    // --- SECURITY & PIN LOGIC ---
+    function load2FASettings() {
+        const isEnabled = localStorage.getItem('admin2FA') === 'enabled';
+        document.getElementById('tfaToggle').checked = isEnabled;
+        document.getElementById('tfaActiveSection').style.display = isEnabled ? 'block' : 'none';
+        const badge = document.getElementById('tfaBadge');
+        badge.innerText = isEnabled ? "SECURED" : "INACTIVE";
+        badge.className = isEnabled ? "badge badge-success p-1 px-2" : "badge badge-secondary p-1 px-2";
+        if (isEnabled) {
+            document.getElementById('secretKey').innerText = localStorage.getItem('adminSecret') || "CGC-XXXX";
+            document.getElementById('recoveryCode').innerText = localStorage.getItem('recoveryCode') || "RC-VOID";
+        }
+    }
+
+    function handle2FAToggle() {
+        const check = document.getElementById('tfaToggle').checked;
+        if(check) {
+            const pin = prompt("Define a 4-Digit Security PIN:");
+            if(pin && pin.length === 4 && !isNaN(pin)) {
+                localStorage.setItem('admin2FA', 'enabled');
+                localStorage.setItem('masterPIN', pin);
+                localStorage.setItem('adminSecret', "CGC-" + Math.random().toString(36).substr(2, 6).toUpperCase());
+                localStorage.setItem('recoveryCode', "RC-" + Math.random().toString(36).substr(2, 4).toUpperCase());
+                alert("Security PIN Set. 2FA Activated.");
+            } else { 
+                document.getElementById('tfaToggle').checked = false;
+                alert("Valid 4-digit PIN required.");
+            }
+        } else { 
+            if(confirm("Disable security layers?")) localStorage.setItem('admin2FA', 'disabled'); 
+        }
+        load2FASettings();
+    }
+
+    function updateSecurityPIN() {
+        const storedPIN = localStorage.getItem('masterPIN');
+        if (storedPIN) {
+            const verify = prompt("IDENTITY CHECK: Enter CURRENT 4-digit PIN:");
+            if (verify !== storedPIN) { alert("Invalid PIN. Access Denied."); return; }
+        }
+        const newPIN = prompt("Enter NEW 4-digit Security PIN:");
+        if (newPIN && newPIN.length === 4 && !isNaN(newPIN)) {
+            const confirmPIN = prompt("Confirm NEW Security PIN:");
+            if (newPIN === confirmPIN) {
+                localStorage.setItem('masterPIN', newPIN);
+                alert("Security PIN updated successfully.");
+            } else { alert("PIN mismatch."); }
+        } else { alert("Invalid format. Use 4 digits."); }
+    }
+
+    function handleLogout() { if(confirm("Terminate session?")) window.location.href = 'login.html'; }
+    function initSettings() { loadDepartments(); load2FASettings(); }
+</script>
+</body>
+</html>

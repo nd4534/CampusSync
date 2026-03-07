@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Query Chatbot | College Helpdesk</title>
+
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #dd8c8c, #2575fc);
+    }
+
+    .chat-container {
+      width: 420px;
+      height: 560px;
+      background: #fff;
+      border-radius: 18px;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.3);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      animation: fadeIn 0.8s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .chat-header {
+      background: linear-gradient(90deg, #6a11cb, #2575fc);
+      color: white;
+      padding: 15px;
+      text-align: center;
+      font-weight: bold;
+      font-size: 16px;
+    }
+
+    .chat-body {
+      flex: 1;
+      padding: 15px;
+      overflow-y: auto;
+      background: #f5f5f5;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .message {
+      max-width: 75%;
+      margin: 10px 0;
+      padding: 10px 14px;
+      border-radius: 14px;
+      font-size: 14px;
+      line-height: 1.4;
+      word-wrap: break-word;
+    }
+
+    .bot {
+      background: #e0e0e0;
+      align-self: flex-start;
+      border-bottom-left-radius: 2px;
+    }
+
+    .user {
+      background: #6a11cb;
+      color: white;
+      align-self: flex-end;
+      border-bottom-right-radius: 2px;
+    }
+
+    .chat-input {
+      display: flex;
+      padding: 12px;
+      border-top: 1px solid #ddd;
+      background: #fff;
+    }
+
+    .chat-input input {
+      flex: 1;
+      padding: 10px;
+      border-radius: 20px;
+      border: 1px solid #ccc;
+      outline: none;
+      font-size: 14px;
+    }
+
+    .chat-input button {
+      margin-left: 10px;
+      padding: 10px 18px;
+      border-radius: 20px;
+      border: none;
+      background: linear-gradient(90deg, #6a11cb, #2575fc);
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .chat-input button:hover {
+      opacity: 0.9;
+    }
+
+    .chat-footer {
+      text-align: center;
+      padding: 10px;
+      font-size: 13px;
+      color: #555;
+      background: #fafafa;
+      border-top: 1px solid #eee;
+    }
+
+    .chat-footer span {
+      color: #6a11cb;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .chat-footer span:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="chat-container">
+
+    <div class="chat-header">
+      🤖 College Helpdesk Chatbot
+    </div>
+
+    <div class="chat-body" id="chatBody">
+      <div class="message bot">
+        Hello 👋<br>
+        I’m the College Helpdesk Bot.<br>
+        Ask me about admission, fees, documents, courses, or timings.
+      </div>
+    </div>
+
+    <div class="chat-input">
+      <input type="text" id="userInput" placeholder="Type your query..." />
+      <button onclick="sendMessage()">Send</button>
+    </div>
+
+    <div class="chat-footer">
+      Not a query?
+      <span onclick="goToComplaint()">Raise a Complaint</span>
+    </div>
+
+  </div>
+
+  <script>
+    async function sendMessage() {
+      const input = document.getElementById("userInput");
+      const text = input.value.trim();
+      if (text === "") return;
+
+      addMessage(text, "user");
+      input.value = "";
+
+      // Call the backend API
+      try {
+        const response = await fetch('http://localhost:5000/api/chatbot/query', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ message: text })
+        });
+
+        const data = await response.json();
+        addMessage(data.reply, "bot");
+      } catch (error) {
+        console.error("Error connecting to chatbot:", error);
+        addMessage("Sorry, I'm having trouble connecting to the server. Please try again later.", "bot");
+      }
+    }
+
+    function addMessage(text, sender) {
+      const chatBody = document.getElementById("chatBody");
+      const msg = document.createElement("div");
+      msg.className = "message " + sender;
+      msg.innerText = text;
+      chatBody.appendChild(msg);
+      chatBody.scrollTop = chatBody.scrollHeight;
+    }
+
+    document.getElementById("userInput").addEventListener("keypress", function(e) {
+      if (e.key === "Enter") sendMessage();
+    });
+
+    function goToComplaint() {
+      window.location.href = "complaint.html";
+    }
+  </script>
+
+</body>
+</html>

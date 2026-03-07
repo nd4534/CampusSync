@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Private Chat | Admin</title>
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { background: #f1f5f9; height: 100vh; display: flex; flex-direction: column; }
+    .chat-header { background: #0f172a; color: white; padding: 20px; }
+    .chat-box { flex: 1; overflow-y: auto; padding: 30px; display: flex; flex-direction: column; gap: 15px; }
+    .msg { max-width: 70%; padding: 12px 18px; border-radius: 15px; font-size: 0.9rem; }
+    .msg.admin { background: #2563eb; color: white; align-self: flex-end; }
+    .msg.student { background: white; border: 1px solid #e2e8f0; align-self: flex-start; }
+    .chat-input { background: white; padding: 20px; border-top: 1px solid #e2e8f0; }
+  </style>
+</head>
+<body>
+
+<div class="chat-header d-flex justify-content-between align-items-center">
+    <div>
+        <h5 class="mb-0">Chat with <span id="chatUser">User</span></h5>
+        <small class="opacity-75">Regarding Token: <span id="ticketID">#0000</span></small>
+    </div>
+    <button class="btn btn-outline-light btn-sm" onclick="history.back()">Exit Chat</button>
+</div>
+
+<div class="chat-box" id="msgBox">
+    <div class="msg student">I've been facing this issue since yesterday. When will it be fixed?</div>
+    <div class="msg admin">Hello! We've merged your request with others from Block B. Maintenance is currently on-site.</div>
+</div>
+
+<div class="chat-input">
+    <div class="container">
+        <div class="input-group">
+            <input type="text" id="chatIn" class="form-control" placeholder="Type private message...">
+            <div class="input-group-append">
+                <button class="btn btn-primary" onclick="send()">Send Message</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('chatUser').innerText = localStorage.getItem('activeChatUser');
+    document.getElementById('ticketID').innerText = localStorage.getItem('activeTicket');
+
+    function send() {
+        const input = document.getElementById('chatIn');
+        if(input.value.trim() !== "") {
+            const div = document.createElement('div');
+            div.className = 'msg admin';
+            div.innerText = input.value;
+            document.getElementById('msgBox').appendChild(div);
+            input.value = "";
+            document.getElementById('msgBox').scrollTop = document.getElementById('msgBox').scrollHeight;
+        }
+    }
+</script>
+</body>
+</html>

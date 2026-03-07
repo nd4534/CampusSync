@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Choose Request Type</title>
+
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #dd8c8c, #2575fc);
+    }
+
+    .choice-box {
+      width: 380px;
+      background: #ffffff;
+      padding: 35px;
+      border-radius: 16px;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.3);
+      text-align: center;
+      animation: fadeIn 0.8s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .choice-box h2 {
+      margin-bottom: 10px;
+      color: #333;
+    }
+
+    .choice-box p {
+      color: #666;
+      margin-bottom: 25px;
+      font-size: 14px;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 14px;
+      margin: 12px 0;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      color: #fff;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+    }
+
+    .query-btn {
+      background: linear-gradient(90deg, #6a11cb, #2575fc);
+    }
+
+    .complaint-btn {
+      background: linear-gradient(90deg, #ff512f, #dd2476);
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="choice-box">
+    <h2>Welcome to College Helpdesk</h2>
+    <p>Please select what you want to raise</p>
+
+    <button class="btn query-btn" onclick="goToQuery()">
+      🟢 Raise a Query
+    </button>
+
+    <button class="btn complaint-btn" onclick="goToComplaint()">
+      🔴 Raise a Complaint
+    </button>
+  </div>
+
+  <script>
+    function goToQuery() {
+      window.location.href = "query.html";
+    }
+
+    function goToComplaint() {
+      window.location.href = "complaint.html";
+    }
+  </script>
+
+</body>
+</html>

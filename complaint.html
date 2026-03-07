@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Raise a Complaint | College Helpdesk</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #dd8c8c, #2575fc);
+    }
+    .box {
+      width: 430px;
+      background: #fff;
+      padding: 30px;
+      border-radius: 18px;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.3);
+    }
+    h2 { text-align: center; margin-bottom: 20px; }
+    label { font-weight: bold; font-size: 14px; }
+    select, textarea {
+      width: 100%;
+      margin-top: 6px;
+      margin-bottom: 16px;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+    }
+    textarea { resize: none; height: 90px; }
+    button {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: bold;
+      background: linear-gradient(90deg, #ff512f, #dd2476);
+      color: white;
+      cursor: pointer;
+    }
+    .switch-btn { margin-top: 12px; background: #6c757d; font-size: 14px; }
+    .message {
+      margin-top: 15px;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      display: none;
+    }
+    .success { background: #e6ffe6; color: #1a7f1a; }
+    .warning { background: #fff3cd; color: #856404; }
+    .error { background: #ffe6e6; color: #b30000; }
+  </style>
+</head>
+<body>
+
+<div class="box">
+  <h2>🚨 Raise a Complaint</h2>
+
+  <label>Complaint Category</label>
+  <select id="category">
+    <option value="">-- Select Category --</option>
+    <option>Hostel</option>
+    <option>Wi-Fi / Network</option>
+    <option>Infrastructure</option>
+    <option>Fees / Accounts</option>
+    <option>Transport</option>
+    <option>Library</option>
+    <option>Faculty / Academics</option>
+    <option>Others</option>
+  </select>
+
+  <label>Complaint Description</label>
+  <textarea id="description" placeholder="Describe your issue clearly..."></textarea>
+
+  <button onclick="submitComplaint()">Submit Complaint</button>
+
+  <button type="button" class="switch-btn" onclick="goToQuery()">
+    💬 Ask a Query Instead
+  </button>
+
+  <div id="msgBox" class="message"></div>
+</div>
+
+<script>
+  let dailyCount = 0;
+  let lastDate = new Date().toDateString();
+  const spamPatterns = ["asdf", "test", "hello", "hi", "???", "123", "abcd"];
+
+  function submitComplaint() {
+    const category = document.getElementById("category").value;
+    const desc = document.getElementById("description").value.trim();
+    const msgBox = document.getElementById("msgBox");
+
+    // Daily Limit Check
+    const today = new Date().toDateString();
+    if (today !== lastDate) { dailyCount = 0; lastDate = today; }
+    if (dailyCount >= 3) {
+      showMsg("❌ You can submit only 3 complaints per day.", "error");
+      return;
+    }
+
+    // Input Validation
+    if (!category || desc.length < 15) {
+      showMsg("⚠️ Please select a category and write a meaningful description.", "warning");
+      return;
+    }
+
+    // Spam Check
+    const lower = desc.toLowerCase();
+    if (spamPatterns.some(w => lower === w || lower.length < 10)) {
+      showMsg("🚫 Invalid or meaningless complaint detected.", "error");
+      return;
+    }
+
+    // --- SMART MERGE INTEGRATION ---
+    let sharedTickets = JSON.parse(localStorage.getItem('campusTickets')) || [];
+    
+    // Check for similar ticket in the SAME category
+    const existing = sharedTickets.find(t => 
+        t.category === category && 
+        t.status === "Open" && 
+        t.description.toLowerCase().includes(lower.substring(0, 10))
+    );
+
+    if (existing) {
+      existing.upvotes = (existing.upvotes || 1) + 1;
+      existing.isMerged = true;
+      localStorage.setItem('campusTickets', JSON.stringify(sharedTickets));
+
+      showMsg(
+        `ℹ️ A similar issue is already active.<br>
+         Your report has been merged into Ticket <b>#${existing.id}</b> to increase its priority.<br>
+         Status: <b>${existing.status}</b>`,
+        "warning"
+      );
+      return;
+    }
+
+    // CREATE NEW TICKET
+    const ticketId = "TCK" + Math.floor(100000 + Math.random() * 900000);
+    const now = new Date();
+    const priorities = ["Critical", "High", "Normal"];
+    
+    const newEntry = {
+        id: ticketId,
+        title: category + " Problem",
+        category: category,
+        priority: priorities[Math.floor(Math.random() * 3)],
+        upvotes: 1,
+        description: desc,
+        student: localStorage.getItem('userName') || "Student",
+        status: "Open",
+        timestamp: now.getTime(),
+        isMerged: false
+    };
+
+    sharedTickets.push(newEntry);
+    localStorage.setItem('campusTickets', JSON.stringify(sharedTickets));
+
+    dailyCount++;
+    showMsg(
+      `✅ Complaint submitted successfully.<br>
+        <b>Ticket ID:</b> ${ticketId}<br>
+        <b>Status:</b> Submitted<br>
+        <b>Date:</b> ${now.toLocaleDateString('en-GB')}`,
+      "success"
+    );
+
+    document.getElementById("category").value = "";
+    document.getElementById("description").value = "";
+  }
+
+  function goToQuery() { window.location.href = "query.html"; }
+
+  function showMsg(text, type) {
+    const box = document.getElementById("msgBox");
+    box.className = "message " + type;
+    box.innerHTML = text;
+    box.style.display = "block";
+  }
+</script>
+
+</body>
+</html>

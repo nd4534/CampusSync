@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Ticket Status | CampusSync</title>
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+  <style>
+    body { background-color: #f1f5f9; font-family: 'Segoe UI', sans-serif; }
+    .nav-bar { background: #0f172a; color: white; padding: 15px 0; margin-bottom: 40px; }
+    .detail-card { border: none; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.08); background: white; overflow: hidden; }
+    .status-header { background: #2563eb; color: white; padding: 25px; text-align: center; }
+    .label-tag { font-size: 0.75rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; }
+    .value-box { font-size: 1.1rem; color: #1e293b; margin-bottom: 25px; font-weight: 500; }
+    .priority-pill { padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; }
+    .btn-voted { background-color: #10b981 !important; border-color: #10b981 !important; cursor: not-allowed; }
+  </style>
+</head>
+<body>
+
+<nav class="nav-bar">
+    <div class="container d-flex justify-content-between align-items-center">
+        <h5 class="mb-0 font-weight-bold"><i class="fas fa-headset mr-2"></i> CampusSync Support</h5>
+        <button class="btn btn-outline-light btn-sm rounded-pill px-3" onclick="location.href='student_dashboard.html'">Back to Dashboard</button>
+    </div>
+</nav>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-7">
+            <div class="card detail-card">
+                <div class="status-header" id="headerBg">
+                    <h6 class="text-uppercase small mb-1 opacity-75">Current Processing State</h6>
+                    <h2 class="font-weight-bold mb-0" id="statusText">---</h2>
+                </div>
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-4">
+                        <h3 class="font-weight-bold" id="titleText">---</h3>
+                        <span id="priorityPill" class="priority-pill">---</span>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-6">
+                            <label class="label-tag">Tracking ID</label>
+                            <div class="value-box text-primary" id="idText">#000000</div>
+                        </div>
+                        <div class="col-6 text-right">
+                            <label class="label-tag">Department</label>
+                            <div class="value-box" id="deptText">---</div>
+                        </div>
+                    </div>
+
+                    <label class="label-tag">Issue Description</label>
+                    <div class="p-3 bg-light rounded value-box" style="font-size: 0.95rem; line-height: 1.6;" id="descText">---</div>
+
+                    <hr>
+                    <div class="text-center py-3">
+                        <p class="small text-muted mb-3" id="voteInstruction">Is this issue affecting you too? Support this ticket to increase visibility.</p>
+                        <button class="btn btn-primary px-5 font-weight-bold py-3 rounded-pill transition" id="voteBtn" onclick="castUpvote()">
+                            <i class="fas fa-thumbs-up mr-2"></i> UPVOTE ISSUE (<span id="upvoteText">0</span>)
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 1. GET TICKET ID FROM URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const ticketID = urlParams.get('id');
+
+    // 2. FETCH GLOBAL DATA
+    let tickets = JSON.parse(localStorage.getItem('campusTickets')) || [];
+    let userVotes = JSON.parse(localStorage.getItem('userUpvotes')) || [];
+    let ticket = tickets.find(t => t.id === ticketID);
+
+    if (ticket) {
+        document.getElementById('statusText').innerText = ticket.status || "Open";
+        document.getElementById('titleText').innerText = ticket.title || ticket.category + " Issue";
+        document.getElementById('idText').innerText = "#" + ticket.id;
+        document.getElementById('deptText').innerText = ticket.category;
+        document.getElementById('descText').innerText = ticket.description;
+        document.getElementById('upvoteText').innerText = ticket.upvotes || 1;
+
+        // Priority Styling
+        const pill = document.getElementById('priorityPill');
+        pill.innerText = ticket.priority;
+        if (ticket.priority === "Critical") pill.className = "priority-pill bg-danger text-white";
+        else if (ticket.priority === "High") pill.className = "priority-pill bg-warning text-dark";
+        else pill.className = "priority-pill bg-info text-white";
+
+        // CHECK IF USER ALREADY VOTED
+        if (userVotes.includes(ticketID)) {
+            lockVoteButton();
+        }
+    } else {
+        document.body.innerHTML = "<div class='text-center mt-5'><h4>Ticket Not Found</h4><a href='student_dashboard.html'>Back to Dashboard</a></div>";
+    }
+
+    // STRICT SINGLE VOTE LOGIC
+    function castUpvote() {
+        // Double-check local list
+        if (userVotes.includes(ticketID)) {
+            alert("⚠️ You have already supported this issue.");
+            return;
+        }
+
+        const index = tickets.findIndex(t => t.id === ticketID);
+        if (index !== -1) {
+            // Increment in Master Database
+            tickets[index].upvotes = (tickets[index].upvotes || 1) + 1;
+            
+            // Add to User's "Voted List"
+            userVotes.push(ticketID);
+            
+            // Save Both
+            localStorage.setItem('campusTickets', JSON.stringify(tickets));
+            localStorage.setItem('userUpvotes', JSON.stringify(userVotes));
+            
+            // Update UI
+            document.getElementById('upvoteText').innerText = tickets[index].upvotes;
+            lockVoteButton();
+            alert("✅ Thank you! Your support has been recorded.");
+        }
+    }
+
+    function lockVoteButton() {
+        const btn = document.getElementById('voteBtn');
+        btn.classList.add('btn-voted');
+        btn.innerHTML = `<i class="fas fa-check-circle mr-2"></i> ISSUE SUPPORTED (<span id="upvoteText">${ticket.upvotes}</span>)`;
+        btn.disabled = true;
+        document.getElementById('voteInstruction').innerText = "You have already contributed your vote to this issue.";
+    }
+</script>
+</body>
+</html>

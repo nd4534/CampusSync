@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Ticket Management | Admin</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+    <style>
+        body { background: #f8f9fa; font-family: 'Inter', sans-serif; }
+        .detail-card { border: none; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin-top: 50px; }
+        .header-bar { background: #0f172a; color: white; padding: 20px; border-radius: 15px 15px 0 0; }
+        .info-label { font-size: 0.75rem; font-weight: 800; color: #64748b; text-transform: uppercase; }
+        .data-value { font-size: 1rem; color: #1e293b; margin-bottom: 20px; }
+        .btn-spam { background-color: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
+        .btn-spam:hover { background-color: #fecaca; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card detail-card">
+                <div class="header-bar d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Control Panel | Ticket #<span id="displayID">---</span></h5>
+                    <button class="btn btn-outline-light btn-sm" onclick="history.back()">Back to Queue</button>
+                </div>
+                <div class="card-body p-5">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label class="info-label">Student ID</label>
+                            <p class="data-value" id="studentID">---</p>
+                        </div>
+                        <div class="col-md-6 text-right">
+                             <span id="priorityBadge" class="badge p-2 px-3">---</span>
+                        </div>
+                    </div>
+                    
+                    <label class="info-label">Title</label>
+                    <h4 class="font-weight-bold mb-4" id="title">---</h4>
+
+                    <label class="info-label">Description</label>
+                    <div class="p-3 bg-light rounded mb-4" id="description">---</div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label class="info-label text-primary">Popularity</label>
+                            <p class="data-value font-weight-bold"><i class="fas fa-arrow-up"></i> <span id="upvotes">0</span> Upvotes</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="info-label">Status</label>
+                            <p class="data-value"><span class="badge badge-light border" id="currentStatus">Open</span></p>
+                        </div>
+                    </div>
+
+                    <hr>
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <button class="btn btn-success px-4 font-weight-bold" onclick="updateTicketStatus('Resolved')">
+                                <i class="fas fa-check-circle mr-2"></i> Mark Resolved
+                            </button>
+                            <button class="btn btn-info px-4 ml-2" onclick="updateTicketStatus('Misc')">
+                                <i class="fas fa-folder-open mr-2"></i> Miscellaneous
+                            </button>
+                        </div>
+                        <button class="btn btn-spam px-4" onclick="updateTicketStatus('Spam')">
+                            <i class="fas fa-ban mr-2"></i> Mark Spam
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 1. DATA FETCHING
+    const urlParams = new URLSearchParams(window.location.search);
+    const ticketID = urlParams.get('id');
+    let tickets = JSON.parse(localStorage.getItem('campusTickets')) || [];
+    const ticket = tickets.find(t => t.id == ticketID);
+
+    // 2. FILL UI
+    if (ticket) {
+        document.getElementById('displayID').innerText = ticket.id;
+        document.getElementById('studentID').innerText = ticket.student;
+        document.getElementById('title').innerText = ticket.title;
+        document.getElementById('description').innerText = ticket.description;
+        document.getElementById('upvotes').innerText = ticket.upvotes;
+        document.getElementById('currentStatus').innerText = ticket.status || "Open";
+        
+        const badge = document.getElementById('priorityBadge');
+        badge.innerText = ticket.priority;
+        if (ticket.priority === "Critical") badge.classList.add("badge-danger");
+        else if (ticket.priority === "High") badge.classList.add("badge-warning");
+        else badge.classList.add("badge-info");
+    }
+
+    // 3. OPERATIVE STATUS UPDATER
+    function updateTicketStatus(newStatus) {
+        const index = tickets.findIndex(t => t.id == ticketID);
+        
+        if (index !== -1) {
+            // Update the status in the main array
+            tickets[index].status = newStatus;
+            
+            // Push back to LocalStorage
+            localStorage.setItem('campusTickets', JSON.stringify(tickets));
+            
+            let alertMsg = "";
+            let redirect = "";
+
+            // Custom alerts and routing based on action
+            switch(newStatus) {
+                case 'Resolved':
+                    alertMsg = "✅ Ticket marked as Resolved. Moved to Resolution Log.";
+                    redirect = 'list_resolved.html';
+                    break;
+                case 'Misc':
+                    alertMsg = "📂 Ticket moved to Miscellaneous Archives.";
+                    redirect = 'list_misc.html';
+                    break;
+                case 'Spam':
+                    alertMsg = "🚫 Ticket moved to Spam Vault.";
+                    redirect = 'list_spam.html';
+                    break;
+            }
+
+            alert(alertMsg);
+            window.location.href = 'admin_dashboard.html'; 
+        }
+    }
+</script>
+</body>
+</html>

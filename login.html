@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Library Login</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: linear-gradient(135deg, #dd8c8c, #2575fc); /* Purple-blue gradient */
+    }
+
+    .login-box {
+      width: 370px;
+      background: #ffffff;
+      padding: 35px;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      animation: fadeIn 0.8s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .login-box h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 22px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    .tabs {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      border-bottom: 2px solid #eee;
+    }
+
+    .tab {
+      flex: 1;
+      text-align: center;
+      padding: 10px;
+      cursor: pointer;
+      font-weight: bold;
+      color: #555;
+      transition: color 0.3s, border-bottom 0.3s;
+    }
+
+    .tab.active {
+      color: #6a11cb;
+      border-bottom: 2px solid #6a11cb;
+    }
+
+    .form {
+      display: none;
+    }
+    .form.active {
+      display: block;
+    }
+
+    input[type="text"], input[type="password"] {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+
+    .captcha-box {
+      display: flex;
+      align-items: center;
+      margin: 12px 0;
+    }
+
+    .captcha {
+      font-weight: bold;
+      background: #f0f0f0;
+      padding: 12px 18px;
+      border-radius: 6px;
+      margin-right: 10px;
+      font-size: 18px;
+      letter-spacing: 4px;
+      box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
+    }
+
+    .refresh {
+      cursor: pointer;
+      font-size: 20px;
+      color: #2575fc;
+      transition: transform 0.3s;
+    }
+
+    .refresh:hover {
+      transform: rotate(180deg);
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(90deg, #6a11cb, #2575fc);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: transform 0.2s, background 0.3s;
+    }
+
+    button:hover {
+      background: linear-gradient(90deg, #2575fc, #6a11cb);
+      transform: scale(1.05);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="login-box">
+    <div class="box" style="text-align: center;">
+      <img src="cgc_logo.png" alt="CGC Logo" style="max-width: 150px; margin-bottom: 10px;">
+    </div>
+
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('user')">User</div>
+      <div class="tab" onclick="switchTab('admin')">Admin</div>
+    </div>
+
+    <form class="form active" id="userForm" onsubmit="return validateLogin('user')">
+      <input type="text" id="userRoll" placeholder="Enter Roll Number or newStudent@RollNumber" required>
+      <input type="password" id="userPass" placeholder="Enter Password" required>
+
+      <div class="captcha-box">
+        <div class="captcha" id="captchaUser"></div>
+        <div class="refresh" onclick="generateCaptcha('user')">&#x21bb;</div>
+      </div>
+      <input type="text" id="userCaptcha" placeholder="Enter Captcha" required>
+
+      <button type="submit">Login</button>
+    </form>
+
+    <form class="form" id="adminForm" onsubmit="return validateLogin('admin')">
+      <input type="text" id="adminID" placeholder="Enter Admin ID" required>
+      <input type="password" id="adminPass" placeholder="Enter Password" required>
+
+      <div class="captcha-box">
+        <div class="captcha" id="captchaAdmin"></div>
+        <div class="refresh" onclick="generateCaptcha('admin')">&#x21bb;</div>
+      </div>
+      <input type="text" id="adminCaptcha" placeholder="Enter Captcha" required>
+
+      <button type="submit">Admin Login</button>
+    </form>
+  </div>
+
+  <script>
+    // Handles switching between User and Admin tabs
+    function switchTab(role) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.form').forEach(f => f.classList.remove('active'));
+      if(role === 'user') {
+        document.querySelectorAll('.tab')[0].classList.add('active');
+        document.getElementById('userForm').classList.add('active');
+      } else {
+        document.querySelectorAll('.tab')[1].classList.add('active');
+        document.getElementById('adminForm').classList.add('active');
+      }
+    }
+
+    // Generates a random 6-character Captcha
+    function generateCaptcha(role) {
+      const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ123456789";
+      let captcha = "";
+      for (let i = 0; i < 6; i++) {
+        captcha += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      if(role === 'user') {
+        document.getElementById('captchaUser').innerText = captcha;
+      } else {
+        document.getElementById('captchaAdmin').innerText = captcha;
+      }
+    }
+
+    // Handles authentication and redirection
+    function validateLogin(role) {
+      let enteredCaptcha, actualCaptcha, id, pass;
+
+      if(role === 'user') {
+        id = document.getElementById("userRoll").value;
+        pass = document.getElementById("userPass").value;
+        enteredCaptcha = document.getElementById("userCaptcha").value.toUpperCase();
+        actualCaptcha = document.getElementById("captchaUser").innerText;
+      } else {
+        id = document.getElementById("adminID").value;
+        pass = document.getElementById("adminPass").value;
+        enteredCaptcha = document.getElementById("adminCaptcha").value.toUpperCase();
+        actualCaptcha = document.getElementById("captchaAdmin").innerText;
+      }
+
+      // Check Captcha first
+      if(enteredCaptcha !== actualCaptcha) {
+        alert("❌ Invalid Captcha! Please try again.");
+        generateCaptcha(role); // Refresh captcha on failure
+        return false;
+      }
+
+      if (role === 'user') {
+        // Sync username to localStorage
+        localStorage.setItem('userName', id.replace('newStudent@', ''));
+
+        // Case 1: New Student (ID starts with newStudent@)
+        if (id.startsWith("newStudent@")) {
+          alert("👋 New Student Detected! Accessing Query Section...");
+          window.location.href = "query.html"; 
+          return false;
+        } 
+        // Case 2: Existing Student
+        else {
+          alert("✅ Student Login Successful!");
+          window.location.href = "dashboard.html"; 
+          return false;
+        }
+      } 
+      
+      // Case 3: Admin Login (Hardcoded credentials for prototype)
+      else if(role === 'admin') {
+        if(id === "admin01" && pass === "admin123") {
+          alert("🔓 Admin Access Granted! Opening Dashboard...");
+          window.location.href = "admin_dashboard.html";
+          return false;
+        } else {
+          alert("❌ Invalid Admin Credentials!");
+          return false;
+        }
+      }
+      return false;
+    }
+
+    // Initialize Captchas on page load
+    window.onload = () => {
+      generateCaptcha('user');
+      generateCaptcha('admin');
+    }
+  </script>
+</body>
+</html>

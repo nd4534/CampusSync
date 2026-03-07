@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CGC Command Centre</title>
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+  <style>
+    :root {
+      --primary-color: #0f172a;
+      --accent-color: #2563eb;
+      --dark-panel: #1e293b;
+      --light-bg: #f1f5f9;
+    }
+    body { font-family: 'Inter', sans-serif; background-color: var(--light-bg); height: 100vh; overflow: hidden; }
+    
+    .navbar { background-color: var(--primary-color) !important; height: 60px; }
+
+    /* The Hero Area - Slimmed for Command feel */
+    .jumbotron {
+      background: var(--primary-color);
+      color: white; padding: 1.5rem; margin-bottom: 0; border-radius: 0;
+      border-bottom: 3px solid var(--accent-color);
+    }
+
+    /* 4-Quadrant Workspace */
+    .command-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      gap: 15px;
+      padding: 15px;
+      height: calc(100vh - 180px); /* Adjust for header/nav */
+    }
+
+    .cmd-panel {
+      background: white;
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+
+    .panel-title {
+      background: #f8fafc;
+      padding: 10px 15px;
+      font-weight: 800;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      justify-content: space-between;
+      color: var(--primary-color);
+    }
+
+    /* Feature: Live Entry Stream */
+    .stream-box { flex: 1; overflow-y: auto; padding: 10px; }
+    .stream-item { 
+        padding: 8px; border-bottom: 1px solid #f1f5f9; font-size: 0.8rem; 
+        display: flex; justify-content: space-between;
+    }
+
+    /* Feature: Auto-Merge Monitor */
+    .merge-card {
+        background: #fff1f2; border-left: 4px solid #e11d48;
+        margin: 10px; padding: 10px; border-radius: 8px;
+    }
+
+    /* Feature: Private Chat Console */
+    .chat-console { background: #f8fafc; flex: 1; padding: 15px; overflow-y: auto; }
+    
+    /* Functional Buttons */
+    .btn-cmd { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; }
+
+    /* Grid Specific Adjustments */
+    .q-top-left { border-top: 4px solid var(--accent-color); }
+    .q-top-right { border-top: 4px solid #f59e0b; }
+    .q-bot-left { border-top: 4px solid #10b981; }
+    .q-bot-right { border-top: 4px solid #6366f1; }
+  </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark">
+  <div class="container-fluid">
+    <a class="navbar-brand font-weight-bold" href="admin_dashboard.html">SYSTEM_OS // COMMAND_CENTRE</a>
+    <div class="ml-auto text-white small">
+        <span class="badge badge-info mr-3">UPTIME: 142H</span>
+        <button class="btn btn-sm btn-outline-light" onclick="location.href='admin_dashboard.html'">Back</button>
+    </div>
+  </div>
+</nav>
+
+<div class="jumbotron">
+    <div class="container-fluid d-flex justify-content-between align-items-center">
+        <div>
+            <h2 class="mb-0 font-weight-bold">Campus Operations Monitor</h2>
+            <p class="small mb-0 opacity-75">Real-time processing: Merges, Moderation, and Secure Comms</p>
+        </div>
+        <div class="text-right">
+            <h4 id="liveClock" class="mb-0 font-weight-bold">12:00:00</h4>
+        </div>
+    </div>
+</div>
+
+<div class="command-container">
+    
+    <div class="cmd-panel q-top-left">
+        <div class="panel-title">Live Entry Stream <span class="text-primary">● Active</span></div>
+        <div class="stream-box" id="entryStream">
+            <div class="stream-item">
+                <span>[12:04] New Ticket #TK-992 (Academic)</span>
+                <button class="btn btn-link btn-sm p-0">VIEW</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="cmd-panel q-top-right">
+        <div class="panel-title">Priority Escalation Hub <span class="text-danger">Alerts</span></div>
+        <div class="stream-box">
+            <div class="merge-card">
+                <div class="d-flex justify-content-between">
+                    <strong class="small text-danger">AUTO-MERGE ALERT</strong>
+                    <span class="badge badge-danger">CRITICAL</span>
+                </div>
+                <p class="mb-1 small font-weight-bold">Hostel Block B: Electricity Failure</p>
+                <p class="x-small text-muted mb-2">14 duplicate requests detected and merged. Priority escalated.</p>
+                <button class="btn btn-danger btn-sm btn-cmd" onclick="window.location.href='admin_chat.html'">Deploy Response</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="cmd-panel q-bot-left">
+        <div class="panel-title">Secure Comms Console <span class="text-success">Encrypted</span></div>
+        <div class="chat-console" id="miniChat">
+            <div class="small text-muted mb-2 italic">Waiting for active secure session...</div>
+        </div>
+        <div class="p-2 bg-white border-top">
+            <div class="input-group">
+                <input type="text" class="form-control form-control-sm" placeholder="Direct message student...">
+                <div class="input-group-append">
+                    <button class="btn btn-sm btn-primary">Send</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="cmd-panel q-bot-right">
+        <div class="panel-title">System Quarantine <span class="text-secondary">Misc/Blocked</span></div>
+        <div class="stream-box">
+            <table class="table table-sm x-small">
+                <thead><tr><th>ID</th><th>User</th><th>Action</th></tr></thead>
+                <tbody>
+                    <tr><td>#TK-802</td><td>Bot_User_9</td><td><span class="text-danger">BLOCKED</span></td></tr>
+                    <tr><td>#TK-805</td><td>Student_44</td><td><button class="btn btn-xs btn-outline-info" style="font-size:0.6rem">MISC</button></td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // Clock
+    setInterval(() => {
+        document.getElementById('liveClock').innerText = new Date().toLocaleTimeString();
+    }, 1000);
+
+    // Entry Stream Simulation
+    const entryBox = document.getElementById('entryStream');
+    function addEntry() {
+        const id = Math.floor(Math.random() * 9000) + 1000;
+        const div = document.createElement('div');
+        div.className = 'stream-item';
+        div.innerHTML = `<span>[${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}] New Entry #TK-${id}</span><button class="btn btn-link btn-sm p-0">VIEW</button>`;
+        entryBox.prepend(div);
+        if (entryBox.children.length > 8) entryBox.lastChild.remove();
+    }
+    setInterval(addEntry, 5000);
+</script>
+
+</body>
+</html>

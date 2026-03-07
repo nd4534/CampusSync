@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Campus Satisfaction Survey | CampusSync</title>
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+  <style>
+    body { 
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); 
+      height: 100vh; display: flex; align-items: center; font-family: 'Segoe UI', sans-serif;
+    }
+    .glass-card {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+      width: 100%; max-width: 450px; margin: auto; overflow: hidden;
+    }
+    .card-header { 
+      background: #2563eb; color: white; text-align: center; 
+      padding: 30px; border: none;
+    }
+    .star-rating { font-size: 2.5rem; color: #e2e8f0; cursor: pointer; transition: 0.3s; }
+    .star-rating .active { color: #f59e0b; transform: scale(1.1); }
+    .btn-submit { 
+      background: #2563eb; color: white; border: none; width: 100%; 
+      padding: 15px; border-radius: 12px; font-weight: 700; transition: 0.3s;
+    }
+    .btn-submit:hover:not(:disabled) { background: #1d4ed8; transform: translateY(-2px); }
+    .btn-submit:disabled { background: #64748b; cursor: not-allowed; }
+    
+    .locked-msg { 
+      display: none; background: #fee2e2; color: #b91c1c; 
+      padding: 12px; border-radius: 10px; font-size: 0.9rem; 
+      font-weight: 700; margin-bottom: 20px; border: 1px solid #fecaca;
+    }
+  </style>
+</head>
+<body onload="checkLockStatus()">
+
+<div class="glass-card">
+    <div class="card-header">
+        <i class="fas fa-university fa-3x mb-3"></i>
+        <h4 class="font-weight-bold mb-0">Campus Feedback</h4>
+        <p class="small opacity-75 mb-0">Help us improve college services</p>
+    </div>
+    <div class="card-body p-4 text-center">
+        <div id="lockedMessage" class="locked-msg">
+            <i class="fas fa-lock mr-2"></i> Feedback locked until Monday <span id="unlockDate"></span>
+        </div>
+
+        <p class="text-muted mb-4">How satisfied are you with the overall service of the college help desk this week?</p>
+        
+        <div class="mb-4" id="starContainer">
+            <span class="star-rating" onclick="setRating(1)"><i class="fas fa-star" id="s1"></i></span>
+            <span class="star-rating" onclick="setRating(2)"><i class="fas fa-star" id="s2"></i></span>
+            <span class="star-rating" onclick="setRating(3)"><i class="fas fa-star" id="s3"></i></span>
+            <span class="star-rating" onclick="setRating(4)"><i class="fas fa-star" id="s4"></i></span>
+            <span class="star-rating" onclick="setRating(5)"><i class="fas fa-star" id="s5"></i></span>
+        </div>
+
+        <textarea id="feedbackText" class="form-control mb-4" rows="4" style="border-radius: 10px;" placeholder="Suggestions for improvement..."></textarea>
+        
+        <button id="submitBtn" class="btn-submit" onclick="submitGlobalFeedback()">SUBMIT FEEDBACK</button>
+    </div>
+</div>
+
+<script>
+    let currentRating = 0;
+
+    // HELPER: Get the start of the current calendar week (Monday)
+    function getStartOfWeek() {
+        const now = new Date();
+        const day = now.getDay(); 
+        const diff = now.getDate() - day + (day === 0 ? -6 : 1); 
+        const monday = new Date(now.setDate(diff));
+        monday.setHours(0, 0, 0, 0);
+        return monday.getTime();
+    }
+
+    function checkLockStatus() {
+        const now = new Date().getTime();
+        const startOfWeek = getStartOfWeek();
+        const lastLock = localStorage.getItem('studentFeedbackLocked');
+        
+        if (lastLock && lastLock >= startOfWeek) {
+            // Calculate next Monday's date for the unlock message
+            const nextMonday = new Date(startOfWeek + (7 * 24 * 60 * 60 * 1000));
+            document.getElementById('unlockDate').innerText = nextMonday.toLocaleDateString();
+            
+            // Apply visual and functional lock
+            document.getElementById('lockedMessage').style.display = 'block';
+            document.getElementById('feedbackText').disabled = true;
+            document.getElementById('submitBtn').disabled = true;
+            document.getElementById('submitBtn').innerText = "VOTED THIS WEEK";
+            
+            const starContainer = document.getElementById('starContainer');
+            starContainer.style.pointerEvents = 'none';
+            starContainer.style.opacity = '0.5';
+        }
+    }
+
+    function setRating(val) {
+        currentRating = val;
+        for(let i=1; i<=5; i++) { 
+            document.getElementById('s'+i).classList.toggle('active', i <= val); 
+        }
+    }
+
+    function submitGlobalFeedback() {
+        if(currentRating === 0) return alert("Please select a rating.");
+        const now = new Date().getTime();
+        const startOfWeek = getStartOfWeek();
+
+        // 1. Update Weekly Global Reset Logic
+        let stats = JSON.parse(localStorage.getItem('systemFeedbackStats')) || { total: 0, sum: 0, resetDate: startOfWeek };
+        
+        // Safety check: if stored resetDate is from a previous week, clear it
+        if (stats.resetDate < startOfWeek) { 
+            stats = { total: 0, sum: 0, resetDate: startOfWeek }; 
+        }
+
+        stats.total += 1;
+        stats.sum += currentRating;
+        
+        // 2. Persistent Save
+        localStorage.setItem('systemFeedbackStats', JSON.stringify(stats));
+        localStorage.setItem('studentFeedbackLocked', now); 
+
+        alert("✅ Thank you! Your feedback for this calendar week has been recorded.");
+        window.location.href = "dashboard.html";
+    }
+</script>
+</body>
+</html>

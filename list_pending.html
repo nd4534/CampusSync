@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Pending Queue | CampusSync</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background: #f8f9fa; font-family: 'Inter', sans-serif; }
+        .list-card { border: none; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); margin-top: 50px; }
+        .header-bar { background: #2563eb; color: white; padding: 20px; border-radius: 15px 15px 0 0; }
+    </style>
+</head>
+<body>
+<div class="container py-5">
+    <div class="card list-card">
+        <div class="header-bar d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Active Pending Queue</h5>
+            <button class="btn btn-sm btn-outline-light" onclick="location.href='admin_dashboard.html'">Back to Dashboard</button>
+        </div>
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0">
+                <thead class="bg-light small text-muted">
+                    <tr><th>TOKEN</th><th>TITLE</th><th>PRIORITY</th><th>STUDENT</th><th>ACTION</th></tr>
+                </thead>
+                <tbody id="listBody"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<script>
+    function renderList() {
+        const tickets = JSON.parse(localStorage.getItem('campusTickets')) || [];
+        const filtered = tickets.filter(t => t.status !== "Resolved" && t.status !== "Spam" && t.status !== "Misc");
+        const container = document.getElementById('listBody');
+        container.innerHTML = filtered.length ? "" : "<tr><td colspan='5' class='text-center py-5'>No pending tickets.</td></tr>";
+        filtered.forEach(t => {
+            container.innerHTML += `<tr><td class="font-weight-bold">#${t.id}</td><td>${t.title}</td><td><span class="badge badge-primary">${t.priority}</span></td><td>${t.student}</td><td><button class="btn btn-sm btn-dark" onclick="location.href='admin_ticket_detail.html?id=${t.id}'">Process</button></td></tr>`;
+        });
+    }
+    window.onload = renderList;
+</script>
+</body>
+</html>

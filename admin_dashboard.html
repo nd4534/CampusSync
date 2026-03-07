@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Console | CampusSync</title>
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+  <style>
+    :root {
+      --primary-color: #0f172a;
+      --accent-color: #2563eb;
+      --light-bg: #f8f9fa;
+      --danger: #ef4444;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --info: #0ea5e9;
+    }
+    body { font-family: 'Inter', 'Segoe UI', sans-serif; background-color: var(--light-bg); color: #1e293b; }
+    .navbar { box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); background-color: var(--primary-color) !important; }
+    .jumbotron {
+      background: linear-gradient(rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 0.9)), 
+                  url('https://images.unsplash.com/photo-1551288049-bb8c803er742?q=80&w=2670&auto=format&fit=crop');
+      background-size: cover; background-position: center;
+      color: white; padding: 2.5rem 2rem; border-radius: 0;
+    }
+    .stat-btn {
+      border: none; border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      transition: all 0.3s ease; cursor: pointer; background: white;
+      width: 100%; padding: 20px; text-align: center;
+    }
+    .stat-btn:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1); outline: none; }
+    .stat-value { font-size: 1.8rem; font-weight: 800; color: var(--accent-color); }
+    .ticket-row { border-left: 4px solid #e2e8f0; transition: 0.2s; cursor: pointer; }
+    .ticket-row:hover { background-color: #f8fafc; transform: scale(1.01); }
+    .badge-priority {
+        padding: 8px 16px; border-radius: 8px; font-size: 0.75rem;
+        font-weight: 800; letter-spacing: 0.8px; text-transform: uppercase;
+        min-width: 100px; text-align: center; display: inline-block;
+    }
+    .priority-critical { border-left-color: var(--danger) !important; }
+    .priority-high { border-left-color: var(--warning) !important; }
+    .progress-sm { height: 8px; border-radius: 10px; }
+    .command-hub-card {
+        background: linear-gradient(45deg, #0f172a, #1e293b);
+        color: white; border: 1px solid #334155;
+    }
+    .btn-command-primary {
+        background-color: var(--accent-color); color: white;
+        font-weight: 800; letter-spacing: 1px; border: none;
+        padding: 15px; border-radius: 10px; transition: 0.3s;
+    }
+    .modal-overlay {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(15, 23, 42, 0.85); z-index: 9999;
+        display: none; justify-content: center; align-items: center;
+        backdrop-filter: blur(5px);
+    }
+    .modal-card { background: white; width: 450px; border-radius: 15px; box-shadow: 0 25px 50px rgba(0,0,0,0.5); overflow: hidden; }
+    .modal-header { background: #0f172a; color: white; padding: 18px 20px; display: flex; justify-content: space-between; align-items: center; }
+    .close-btn { background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer; }
+    .admin-nav-profile {
+        cursor: pointer; padding: 5px 15px; border-radius: 30px;
+        transition: 0.3s; border: 1px solid transparent;
+        display: flex; align-items: center; color: white;
+    }
+    .admin-nav-profile:hover { background: rgba(255, 255, 255, 0.1); }
+  </style>
+</head>
+<body>
+
+<div id="broadcastModal" class="modal-overlay">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h5 class="mb-0"><i class="fas fa-bullhorn mr-2"></i> System Broadcast</h5>
+            <button class="close-btn" onclick="closeBroadcast()">&times;</button>
+        </div>
+        <div class="modal-body p-4">
+            <div class="form-group">
+                <label class="small font-weight-bold text-muted">ALERT LEVEL</label>
+                <select id="alertLevel" class="form-control mb-3">
+                    <option value="danger">Emergency (Red)</option>
+                    <option value="warning">Warning (Orange)</option>
+                    <option value="info">Information (Blue)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="small font-weight-bold text-muted">MESSAGE</label>
+                <textarea id="broadcastMsg" class="form-control" rows="4" placeholder="Type announcement..."></textarea>
+            </div>
+        </div>
+        <div class="modal-footer p-3 bg-light">
+            <button class="btn btn-secondary btn-sm" onclick="closeBroadcast()">Cancel</button>
+            <button class="btn btn-primary btn-sm px-4 font-weight-bold" onclick="dispatchBroadcast()">Dispatch Alert</button>
+        </div>
+    </div>
+</div>
+
+<nav class="navbar navbar-expand-lg navbar-dark">
+  <div class="container">
+    <a class="navbar-brand" href="#"><i class="fas fa-shield-alt mr-2"></i> Admin Console</a>
+    <div class="collapse navbar-collapse">
+      <ul class="navbar-nav ml-auto align-items-center">
+        <li class="nav-item active"><a class="nav-link" href="#">System Hub</a></li>
+        <li class="nav-item"><a class="nav-link" href="#" onclick="openBroadcast()">Broadcast Alert</a></li>
+        <li class="nav-item ml-lg-3">
+          <div class="admin-nav-profile" onclick="location.href='admin_settings.html'">
+            <img src="https://ui-avatars.com/api/?name=Admin&background=2563eb&color=fff" class="rounded-circle mr-2" width="30">
+            <span>Admin Portal</span>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<div class="jumbotron">
+  <div class="container text-center text-md-left">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="display-4 font-weight-bold" style="font-size: 2.2rem;">System Oversight</h1>
+            <p class="lead" style="font-size: 1rem; opacity: 0.8;">CGC CampusSync Management Node | <span id="clock"></span></p>
+        </div>
+        <span class="badge badge-success px-3 py-2">● Server Online</span>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-md-3 col-6 mb-3">
+            <button onclick="location.href='list_pending.html'" class="stat-btn">
+                <small class="text-muted font-weight-bold">PENDING</small>
+                <div class="stat-value" id="pendingCount">0</div>
+            </button>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <button onclick="location.href='list_resolved.html'" class="stat-btn">
+                <small class="text-muted font-weight-bold">RESOLVED</small>
+                <div class="stat-value text-success" id="resolvedCount">0</div>
+            </button>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <button onclick="location.href='list_spam.html'" class="stat-btn">
+                <small class="text-muted font-weight-bold">SPAM FILTERED</small>
+                <div class="stat-value text-danger" id="spamCount">0</div>
+            </button>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <button onclick="location.href='list_misc.html'" class="stat-btn">
+                <small class="text-muted font-weight-bold">MISCELLANEOUS</small>
+                <div class="stat-value text-info" id="miscCount">0</div>
+            </button>
+        </div>
+    </div>
+  </div>
+</div>
+
+<main class="py-5 container">
+    <div class="row">
+      <div class="col-lg-8">
+        <h4 class="font-weight-bold mb-3">Urgent Ticket Queue</h4>
+        <div class="card mb-4">
+          <div class="list-group list-group-flush" id="dynamicTicketQueue"></div>
+        </div>
+      </div>
+      <div class="col-lg-4">
+        <div class="card command-hub-card p-4 text-center mb-4">
+            <i class="fas fa-terminal fa-3x mb-3 text-info"></i>
+            <h5 class="font-weight-bold">Global Command</h5>
+            <a href="command_centre.html" class="btn btn-command-primary btn-block">ENTER COMMAND CENTRE</a>
+        </div>
+        <div class="card p-4 text-center shadow-sm">
+            <h6 class="font-weight-bold text-muted small uppercase">Live Satisfaction</h6>
+            <div class="stat-value text-warning" id="avgRating">5.0/5</div>
+            <div class="progress progress-sm mt-3">
+                <div id="ratingBar" class="progress-bar bg-warning" style="width: 100%"></div>
+            </div>
+            <p class="small text-muted mt-2 mb-0" id="feedbackCount">No reviews this week</p>
+        </div>
+      </div>
+    </div>
+</main>
+
+<script>
+    function syncSatisfactionMetrics() {
+        const now = new Date().getTime();
+        const oneWeek = 7 * 24 * 60 * 60 * 1000;
+        let stats = JSON.parse(localStorage.getItem('systemFeedbackStats')) || { total: 0, sum: 0, resetDate: now };
+
+        if (now - stats.resetDate > oneWeek) {
+            stats = { total: 0, sum: 0, resetDate: now };
+            localStorage.setItem('systemFeedbackStats', JSON.stringify(stats));
+        }
+
+        const avgDisplay = document.getElementById('avgRating');
+        const ratingBar = document.getElementById('ratingBar');
+        const countText = document.getElementById('feedbackCount');
+        if (!avgDisplay || !ratingBar || !countText) return;
+
+        if (stats.total === 0) {
+            avgDisplay.innerText = "5.0/5";
+            ratingBar.style.width = "100%";
+            countText.innerText = "No reviews this week";
+            return;
+        }
+
+        const average = (stats.sum / stats.total).toFixed(1);
+        const percentage = (average / 5) * 100;
+        avgDisplay.innerText = `${average}/5`;
+        ratingBar.style.width = `${percentage}%`;
+        countText.innerText = `${stats.total} total reviews this week`;
+
+        if (average >= 4.0) { ratingBar.className = "progress-bar bg-success"; avgDisplay.className = "stat-value text-success"; }
+        else if (average < 2.5) { ratingBar.className = "progress-bar bg-danger"; avgDisplay.className = "stat-value text-danger"; }
+        else { ratingBar.className = "progress-bar bg-warning"; avgDisplay.className = "stat-value text-warning"; }
+    }
+
+    function renderTickets() {
+        const tickets = JSON.parse(localStorage.getItem('campusTickets')) || [];
+        const activeItems = tickets.filter(t => t.status === "Open" || t.status === "Submitted");
+
+        const uniqueMap = new Map();
+        activeItems.forEach(t => {
+            const uniqueKey = (t.category + t.title.toLowerCase().substring(0, 10)).replace(/\s/g, '');
+            if (!uniqueMap.has(uniqueKey)) { uniqueMap.set(uniqueKey, {...t}); }
+            else {
+                const master = uniqueMap.get(uniqueKey);
+                master.upvotes = (master.upvotes || 1) + (t.upvotes || 1);
+                const priorityOrder = { "Critical": 1, "High": 2, "Normal": 3 };
+                if (priorityOrder[t.priority] < priorityOrder[master.priority]) master.priority = t.priority;
+            }
+        });
+
+        const priorityOrder = { "Critical": 1, "High": 2, "Normal": 3 };
+        const finalDisplayList = Array.from(uniqueMap.values()).sort((a, b) => 
+            priorityOrder[a.priority] - priorityOrder[b.priority] || (b.upvotes || 0) - (a.upvotes || 0)
+        );
+
+        const container = document.getElementById('dynamicTicketQueue');
+        if(!container) return;
+        container.innerHTML = finalDisplayList.length ? "" : "<div class='p-5 text-center text-muted'>No active urgent tickets.</div>"; 
+
+        finalDisplayList.forEach(ticket => {
+            const pClass = ticket.priority === "Critical" ? "priority-critical" : (ticket.priority === "High" ? "priority-high" : "");
+            const bClass = ticket.priority === "Critical" ? "badge-danger" : (ticket.priority === "High" ? "badge-warning" : "badge-info");
+            container.innerHTML += `
+                <div class="list-group-item ticket-row ${pClass} p-4" onclick="location.href='admin_ticket_detail.html?id=${ticket.id}'">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="font-weight-bold mb-1">${ticket.title}</h6>
+                            <p class="small text-muted mb-0">#${ticket.id} | Total Community Upvotes: ${ticket.upvotes || 1}</p>
+                        </div>
+                        <span class="badge ${bClass} badge-priority">${ticket.priority}</span>
+                    </div>
+                </div>`;
+        });
+
+        document.getElementById('pendingCount').innerText = finalDisplayList.length;
+        document.getElementById('resolvedCount').innerText = tickets.filter(t => t.status === "Resolved" || t.status === "Closed").length;
+        document.getElementById('spamCount').innerText = tickets.filter(t => t.status === "Spam").length;
+        document.getElementById('miscCount').innerText = tickets.filter(t => t.status === "Misc").length;
+    }
+
+    function openBroadcast() { document.getElementById('broadcastModal').style.display = 'flex'; }
+    function closeBroadcast() { document.getElementById('broadcastModal').style.display = 'none'; }
+    
+    function dispatchBroadcast() {
+        const msgInput = document.getElementById('broadcastMsg');
+        const levelInput = document.getElementById('alertLevel');
+        const msg = msgInput.value;
+        const level = levelInput.value;
+
+        if(!msg) return;
+        
+        localStorage.setItem('activeBroadcast', JSON.stringify({ 
+            message: msg, 
+            type: level, 
+            active: true, 
+            time: new Date().toLocaleTimeString() 
+        }));
+
+        alert("🚀 BROADCAST DISPATCHED!");
+        
+        // RESET FIELDS FOR NEXT USE
+        msgInput.value = "";
+        levelInput.selectedIndex = 0;
+        
+        closeBroadcast();
+    }
+
+    function updateClock() { document.getElementById('clock').innerText = new Date().toLocaleString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' }); }
+
+    window.onload = () => {
+        renderTickets(); syncSatisfactionMetrics(); updateClock();
+        setInterval(updateClock, 1000);
+        setInterval(() => { renderTickets(); syncSatisfactionMetrics(); }, 5000);
+    };
+</script>
+</body>
+</html>

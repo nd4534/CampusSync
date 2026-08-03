@@ -8,12 +8,20 @@
     {
       "src": "*.html",
       "use": "@vercel/static"
+    },
+    {
+      "src": "*.{png,jpg,jpeg,svg,gif,ico}",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
     {
       "src": "/",
       "dest": "/login.html"
+    },
+    {
+      "src": "/student_dashboard.html",
+      "dest": "/dashboard.html"
     },
     {
       "src": "/api/(.*)",

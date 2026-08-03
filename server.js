@@ -53,3 +53,4 @@ app.get("/seed-bot", async (req, res) => {
   });
   res.send("Bot seeded!");
 });
+module.exports = app;
